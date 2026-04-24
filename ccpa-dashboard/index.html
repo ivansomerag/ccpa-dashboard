@@ -16,8 +16,8 @@
     --panel:   #0F1E35;
     --card:    #152540;
     --border:  #1E3A5F;
-    --accent:  #00D4AA;
-    --accent2: #0099CC;
+    --accent:  #5BB8F5;
+    --accent2: #2B7FD4;
     --text:    #E8EDF2;
     --muted:   #7A90A8;
     --success: #22C55E;
@@ -137,14 +137,14 @@
     border-bottom: 1px solid rgba(30,58,95,0.35);
     font-family: var(--mono); font-size: 10px;
   }
-  .data-table tr:hover td { background: rgba(0,212,170,0.04); }
+  .data-table tr:hover td { background: rgba(91,184,245,0.04); }
 
   .stage-badge {
     display: inline-block; padding: 2px 7px; border-radius: 4px;
     font-size: 9px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;
   }
   .stage-complete { background: rgba(34,197,94,0.15); color: var(--success); }
-  .stage-open     { background: rgba(0,212,170,0.15); color: var(--accent); }
+  .stage-open     { background: rgba(91,184,245,0.15); color: var(--accent); }
   .stage-expired  { background: rgba(239,68,68,0.15); color: var(--error); }
   .stage-other    { background: rgba(122,144,168,0.15); color: var(--muted); }
 
@@ -217,7 +217,7 @@ const {
   Tooltip, ResponsiveContainer, Cell, Legend, ReferenceLine
 } = Recharts;
 
-const CHART_COLORS = ["#00D4AA","#0099CC","#7C5CBF","#F59E0B","#EF4444","#22C55E"];
+const CHART_COLORS = ["#5BB8F5","#2B7FD4","#7C5CBF","#F59E0B","#EF4444","#22C55E"];
 
 // ── HELPERS ───────────────────────────────────────────────────────────────────
 function fmtTime(iso) {
@@ -259,7 +259,7 @@ function ChartTooltip({active, payload, label}) {
     React.createElement("div", {style:{color:"#7A90A8",marginBottom:4,fontSize:10}}, label),
     ...payload.map(p => React.createElement("div", {
       key: p.dataKey,
-      style: {color: p.color || "#00D4AA"}
+      style: {color: p.color || "#5BB8F5"}
     }, `${p.name||p.dataKey}: ${typeof p.value==="number" ? p.value.toLocaleString() : p.value}`))
   );
 }
@@ -520,7 +520,7 @@ function Dashboard({data}) {
             React.createElement(XAxis, {dataKey:"month", tick:{fill:"#7A90A8",fontSize:10}, axisLine:{stroke:"#1E3A5F"}}),
             React.createElement(YAxis, {tick:{fill:"#7A90A8",fontSize:10}, axisLine:{stroke:"#1E3A5F"}}),
             React.createElement(Tooltip, {content: React.createElement(ChartTooltip)}),
-            React.createElement(Bar, {dataKey:"count", fill:"#00D4AA", radius:[3,3,0,0], name:"Requests"})
+            React.createElement(Bar, {dataKey:"count", fill:"#5BB8F5", radius:[3,3,0,0], name:"Requests"})
           )
         )
       ),
@@ -591,8 +591,8 @@ function Dashboard({data}) {
             React.createElement(YAxis, {tick:{fill:"#7A90A8",fontSize:10}}),
             React.createElement(Tooltip, {content: React.createElement(ChartTooltip)}),
             React.createElement(Legend, {wrapperStyle:{fontSize:10,color:"#7A90A8"}}),
-            React.createElement(Bar, {dataKey:"delete",  name:"Delete",  fill:"#00D4AA", stackId:"a"}),
-            React.createElement(Bar, {dataKey:"dns",     name:"DNS",     fill:"#0099CC", stackId:"a"}),
+            React.createElement(Bar, {dataKey:"delete",  name:"Delete",  fill:"#5BB8F5", stackId:"a"}),
+            React.createElement(Bar, {dataKey:"dns",     name:"DNS",     fill:"#2B7FD4", stackId:"a"}),
             React.createElement(Bar, {dataKey:"opt_out", name:"Opt Out", fill:"#7C5CBF", stackId:"a", radius:[3,3,0,0]})
           )
         )
