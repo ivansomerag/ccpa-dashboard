@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>CCPA Dashboard — Carter's Inc.</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js"></script>
+<script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js"></script>
+<style>
+  :root {
+    --bg:      #0A1628;
+    --panel:   #0F1E35;
+    --card:    #152540;
+    --border:  #1E3A5F;
+    --accent:  #00D4AA;
+    --accent2: #0099CC;
+    --text:    #E8EDF2;
+    --muted:   #7A90A8;
+    --success: #22C55E;
+    --warn:    #F59E0B;
+    --error:   #EF4444;
+    --font:    'DM Sans', sans-serif;
+    --mono:    'JetBrains Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 13px;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px;
+    height: 52px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header-logo {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 15px; font-weight: 700; letter-spacing: 0.5px;
+  }
+  .header-logo .accent { color: var(--accent); }
+  .header-badge {
+    font-size: 10px; font-family: var(--mono);
+    background: var(--card); border: 1px solid var(--border);
+    padding: 2px 8px; border-radius: 4px; color: var(--muted);
+  }
+  .header-right { display: flex; align-items: center; gap: 16px; }
+  .header-updated {
+    font-family: var(--mono); font-size: 10px; color: var(--muted);
+  }
+  .header-updated span { color: var(--accent); }
+  .refresh-btn {
+    background: transparent; border: 1px solid var(--border);
+    border-radius: 6px; color: var(--muted);
+    font-family: var(--font); font-size: 11px;
+    padding: 4px 10px; cursor: pointer; transition: all 0.15s;
+  }
+  .refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* CONTENT */
+  .content { padding: 20px 24px; max-width: 1600px; margin: 0 auto; }
+
+  /* METRIC CARDS */
+  .metric-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .metric-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .metric-label {
+    font-size: 9px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+  }
+  .metric-value {
+    font-size: 32px; font-weight: 700; color: var(--accent);
+    font-family: var(--mono); line-height: 1;
+  }
+  .metric-value.rate { font-size: 28px; }
+  .metric-sub { font-size: 10px; color: var(--muted); margin-top: 6px; }
+
+  /* GRID */
+  .dash-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 12px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+  }
+  .card-title {
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 12px;
+  }
+  .col-4  { grid-column: span 4; }
+  .col-5  { grid-column: span 5; }
+  .col-6  { grid-column: span 6; }
+  .col-7  { grid-column: span 7; }
+  .col-12 { grid-column: span 12; }
+
+  /* CHART */
+  .custom-tooltip {
+    background: var(--panel); border: 1px solid var(--border);
+    padding: 8px 12px; border-radius: 6px;
+    font-family: var(--mono); font-size: 11px;
+  }
+
+  /* TABLE */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .data-table th {
+    padding: 7px 10px; text-align: left;
+    font-size: 9px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+  .data-table td {
+    padding: 6px 10px;
+    border-bottom: 1px solid rgba(30,58,95,0.35);
+    font-family: var(--mono); font-size: 10px;
+  }
+  .data-table tr:hover td { background: rgba(0,212,170,0.04); }
+
+  .stage-badge {
+    display: inline-block; padding: 2px 7px; border-radius: 4px;
+    font-size: 9px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;
+  }
+  .stage-complete { background: rgba(34,197,94,0.15); color: var(--success); }
+  .stage-open     { background: rgba(0,212,170,0.15); color: var(--accent); }
+  .stage-expired  { background: rgba(239,68,68,0.15); color: var(--error); }
+  .stage-other    { background: rgba(122,144,168,0.15); color: var(--muted); }
+
+  /* TIMING TABLE */
+  .timing-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .timing-table th {
+    padding: 6px 10px; text-align: left;
+    font-size: 9px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+  .timing-table td {
+    padding: 6px 10px;
+    border-bottom: 1px solid rgba(30,58,95,0.3);
+    font-family: var(--mono); font-size: 10px;
+  }
+
+  /* NO DATA */
+  .no-data {
+    display: flex; align-items: center; justify-content: center;
+    color: var(--muted); font-size: 12px; font-family: var(--mono);
+    flex-direction: column; gap: 8px; padding: 24px 0;
+  }
+
+  /* LOADING / ERROR */
+  .fullscreen-state {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 60vh; flex-direction: column; gap: 16px;
+    color: var(--muted); font-family: var(--mono); font-size: 13px;
+  }
+  .spinner {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+  /* RESPONSIVE */
+  @media (max-width: 1024px) {
+    .metric-row { grid-template-columns: repeat(2, 1fr); }
+    .col-4, .col-5, .col-6, .col-7 { grid-column: span 6; }
+    .col-12 { grid-column: span 12; }
+  }
+  @media (max-width: 640px) {
+    .content { padding: 12px 16px; }
+    .metric-row { grid-template-columns: 1fr 1fr; }
+    .col-4, .col-5, .col-6, .col-7, .col-12 { grid-column: span 12; }
+    .header { padding: 0 16px; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+const DATA_URL = "https://raw.githubusercontent.com/ivansomerag/ccpa-dashboard/main/dashboard_data.json";
+const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
+
+// ── REACT HOOKS ───────────────────────────────────────────────────────────────
+const { useState, useEffect } = React;
+const {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer, Cell, Legend, ReferenceLine
+} = Recharts;
+
+const CHART_COLORS = ["#00D4AA","#0099CC","#7C5CBF","#F59E0B","#EF4444","#22C55E"];
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function fmtTime(iso) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  const today = new Date();
+  if (d.toDateString() !== today.toDateString())
+    return d.toLocaleDateString() + " " + d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+  return d.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+}
+
+function stageClass(stage) {
+  const s = (stage || "").toUpperCase();
+  if (["COMPLETE","CLOSED"].includes(s)) return "stage-complete";
+  if (["EXPIRED","REJECTED"].includes(s)) return "stage-expired";
+  if (s.includes("MARKETING")||s.includes("PROCESS")||s.includes("CONFIRM")||
+      s.includes("SALESFORCE")||s.includes("CONSUMER")||s.includes("UNVERIFIED"))
+    return "stage-open";
+  return "stage-other";
+}
+
+const US_FULL_NAMES = {
+  AL:"Alabama",AK:"Alaska",AZ:"Arizona",AR:"Arkansas",CA:"California",
+  CO:"Colorado",CT:"Connecticut",DE:"Delaware",FL:"Florida",GA:"Georgia",
+  HI:"Hawaii",ID:"Idaho",IL:"Illinois",IN:"Indiana",IA:"Iowa",
+  KS:"Kansas",KY:"Kentucky",LA:"Louisiana",ME:"Maine",MD:"Maryland",
+  MA:"Massachusetts",MI:"Michigan",MN:"Minnesota",MS:"Mississippi",MO:"Missouri",
+  MT:"Montana",NE:"Nebraska",NV:"Nevada",NH:"New Hampshire",NJ:"New Jersey",
+  NM:"New Mexico",NY:"New York",NC:"North Carolina",ND:"North Dakota",OH:"Ohio",
+  OK:"Oklahoma",OR:"Oregon",PA:"Pennsylvania",RI:"Rhode Island",SC:"South Carolina",
+  SD:"South Dakota",TN:"Tennessee",TX:"Texas",UT:"Utah",VT:"Vermont",
+  VA:"Virginia",WA:"Washington",WV:"West Virginia",WI:"Wisconsin",WY:"Wyoming"
+};
+
+// ── TOOLTIP ───────────────────────────────────────────────────────────────────
+function ChartTooltip({active, payload, label}) {
+  if (!active || !payload?.length) return null;
+  return React.createElement("div", {className:"custom-tooltip"},
+    React.createElement("div", {style:{color:"#7A90A8",marginBottom:4,fontSize:10}}, label),
+    ...payload.map(p => React.createElement("div", {
+      key: p.dataKey,
+      style: {color: p.color || "#00D4AA"}
+    }, `${p.name||p.dataKey}: ${typeof p.value==="number" ? p.value.toLocaleString() : p.value}`))
+  );
+}
+
+// ── TODAY'S RUN STATUS ────────────────────────────────────────────────────────
+function TodaysRun({history}) {
+  const STEPS = [
+    {id:"validator",      label:"Validator"},
+    {id:"vba",            label:"VBA Macro"},
+    {id:"delete",         label:"Delete Request"},
+    {id:"dns",            label:"DNS Review"},
+    {id:"delete-lists",   label:"Delete Lists"},
+    {id:"process-delete", label:"Process Delete"},
+    {id:"process-dns",    label:"Process DNS"},
+  ];
+  return React.createElement("div", {style:{display:"flex",flexDirection:"column",gap:4}},
+    ...STEPS.map(s => {
+      const run = history?.[s.id];
+      const status = run?.status;
+      const icon  = !run ? "○" : status==="done" ? "✓" : "✗";
+      const color = !run ? "var(--muted)" : status==="done" ? "var(--success)" : "var(--error)";
+      const ranToday = run && new Date(run.time).toDateString() === new Date().toDateString();
+      const timeStr = fmtTime(run?.time);
+      return React.createElement("div", {
+        key: s.id,
+        style:{display:"flex",alignItems:"center",gap:8,padding:"4px 0",
+               borderBottom:"1px solid rgba(30,58,95,0.3)"}
+      },
+        React.createElement("span", {style:{color,fontSize:12,width:14,textAlign:"center",fontWeight:700}}, icon),
+        React.createElement("span", {style:{flex:1,fontSize:11,color:ranToday?"var(--text)":"var(--muted)"}}, s.label),
+        timeStr && React.createElement("span", {
+          style:{fontSize:9,fontFamily:"var(--mono)",color:ranToday?"var(--accent)":"var(--muted)"}
+        }, timeStr)
+      );
+    })
+  );
+}
+
+// ── WEEKLY TREND ──────────────────────────────────────────────────────────────
+function WeeklyTrend({trend}) {
+  if (!trend) return React.createElement("div", {className:"no-data"}, "No data");
+  const up = trend.pct_change >= 0;
+  const color = up ? "var(--warn)" : "var(--success)";
+  const arrow = up ? "↑" : "↓";
+  return React.createElement("div", {style:{display:"flex",gap:16}},
+    React.createElement("div", {style:{flex:1,textAlign:"center"}},
+      React.createElement("div", {style:{fontSize:9,color:"var(--muted)",marginBottom:4,textTransform:"uppercase",letterSpacing:1}}, "This Week"),
+      React.createElement("div", {style:{fontSize:32,fontWeight:700,fontFamily:"var(--mono)",color:"var(--accent)"}}, trend.this_week)
+    ),
+    React.createElement("div", {style:{flex:1,textAlign:"center"}},
+      React.createElement("div", {style:{fontSize:9,color:"var(--muted)",marginBottom:4,textTransform:"uppercase",letterSpacing:1}}, "Last Week"),
+      React.createElement("div", {style:{fontSize:32,fontWeight:700,fontFamily:"var(--mono)",color:"var(--muted)"}}, trend.last_week)
+    ),
+    React.createElement("div", {style:{flex:1,textAlign:"center"}},
+      React.createElement("div", {style:{fontSize:9,color:"var(--muted)",marginBottom:4,textTransform:"uppercase",letterSpacing:1}}, "Change"),
+      React.createElement("div", {style:{fontSize:26,fontWeight:700,fontFamily:"var(--mono)",color}},
+        `${arrow} ${Math.abs(trend.pct_change)}%`
+      )
+    )
+  );
+}
+
+// ── EXPIRING SOON ─────────────────────────────────────────────────────────────
+function ExpiringRequests({expiring}) {
+  if (!expiring?.length)
+    return React.createElement("div", {
+      style:{color:"var(--muted)",fontSize:11,fontFamily:"var(--mono)",textAlign:"center",padding:"20px 0"}
+    }, "No requests expiring in the next 5 days ✓");
+
+  return React.createElement("div", {style:{overflowX:"auto"}},
+    React.createElement("table", {className:"data-table"},
+      React.createElement("thead", {},
+        React.createElement("tr", {},
+          ["Request ID","Type","Stage","Deadline","Days"].map(h =>
+            React.createElement("th", {key:h}, h)
+          )
+        )
+      ),
+      React.createElement("tbody", {},
+        ...expiring.map((r, i) => {
+          const urgent = r.days <= 0;
+          const soon   = r.days <= 2;
+          const color  = urgent ? "var(--error)" : soon ? "var(--warn)" : "var(--success)";
+          const label  = urgent ? `${Math.abs(r.days)}d overdue` : r.days===0 ? "TODAY" : `${r.days}d left`;
+          return React.createElement("tr", {key:i},
+            React.createElement("td", {style:{fontFamily:"var(--mono)",fontSize:9}}, r.request_id),
+            React.createElement("td", {}, r.type?.split(" ")[0] || "—"),
+            React.createElement("td", {},
+              React.createElement("span", {
+                className: `stage-badge ${stageClass(r.stage)}`
+              }, r.stage?.length > 20 ? r.stage.slice(0,18)+"…" : r.stage || "—")
+            ),
+            React.createElement("td", {style:{fontFamily:"var(--mono)",fontSize:9}}, r.deadline),
+            React.createElement("td", {},
+              React.createElement("span", {
+                style:{color,fontWeight:700,fontSize:9,fontFamily:"var(--mono)"}
+              }, label)
+            )
+          );
+        })
+      )
+    )
+  );
+}
+
+// ── OPEN BY STAGE ─────────────────────────────────────────────────────────────
+function OpenByStage({data}) {
+  const rows = (data || []).sort((a,b) => b.count - a.count).slice(0, 8);
+  if (!rows.length) return React.createElement("div", {className:"no-data"}, "No open requests");
+  return React.createElement(ResponsiveContainer, {width:"100%", height:180},
+    React.createElement(BarChart, {data:rows, layout:"vertical", margin:{left:8,right:16,top:4,bottom:4}},
+      React.createElement(CartesianGrid, {strokeDasharray:"3 3", stroke:"#1E3A5F", horizontal:false}),
+      React.createElement(XAxis, {type:"number", tick:{fill:"#7A90A8",fontSize:9}, axisLine:{stroke:"#1E3A5F"}}),
+      React.createElement(YAxis, {type:"category", dataKey:"stage", width:145, tick:{fill:"#E8EDF2",fontSize:8}, axisLine:{stroke:"#1E3A5F"}}),
+      React.createElement(Tooltip, {content: React.createElement(ChartTooltip)}),
+      React.createElement(Bar, {dataKey:"count", name:"Open", radius:[0,3,3,0]},
+        ...rows.map((d,i) => React.createElement(Cell, {key:i, fill:CHART_COLORS[i%CHART_COLORS.length]}))
+      )
+    )
+  );
+}
+
+// ── TOP STATES ────────────────────────────────────────────────────────────────
+function TopStates({data}) {
+  const rows = (data || []).sort((a,b) => b.count-a.count).slice(0,15)
+    .map(d => ({...d, label: US_FULL_NAMES[d.state?.toUpperCase()] || d.state}));
+  if (!rows.length) return React.createElement("div", {className:"no-data"}, "No US state data");
+  return React.createElement(ResponsiveContainer, {width:"100%", height:240},
+    React.createElement(BarChart, {data:rows, layout:"vertical", margin:{left:8,right:24,top:4,bottom:4}},
+      React.createElement(CartesianGrid, {strokeDasharray:"3 3", stroke:"#1E3A5F", horizontal:false}),
+      React.createElement(XAxis, {type:"number", tick:{fill:"#7A90A8",fontSize:9}, axisLine:{stroke:"#1E3A5F"}}),
+      React.createElement(YAxis, {type:"category", dataKey:"label", width:120, tick:{fill:"#E8EDF2",fontSize:9}, axisLine:{stroke:"#1E3A5F"}}),
+      React.createElement(Tooltip, {content: React.createElement(ChartTooltip)}),
+      React.createElement(Bar, {dataKey:"count", name:"Requests", radius:[0,3,3,0]},
+        ...rows.map((d,i) => React.createElement(Cell, {key:i,
+          fill:`rgba(0,${Math.round(212*(1-i/rows.length))},${Math.round(170*(1-i/rows.length))},${0.9-i*0.04})`
+        }))
+      )
+    )
+  );
+}
+
+// ── TOP COUNTRIES ─────────────────────────────────────────────────────────────
+function TopCountries({data}) {
+  const rows = (data || []).sort((a,b) => b.count-a.count).slice(0,15)
+    .map(d => ({...d, country: d.country?.length > 18 ? d.country.slice(0,16)+"…" : d.country}));
+  if (!rows.length) return React.createElement("div", {className:"no-data"}, "No country data");
+  return React.createElement(ResponsiveContainer, {width:"100%", height:240},
+    React.createElement(BarChart, {data:rows, layout:"vertical", margin:{left:8,right:16,top:4,bottom:4}},
+      React.createElement(CartesianGrid, {strokeDasharray:"3 3", stroke:"#1E3A5F", horizontal:false}),
+      React.createElement(XAxis, {type:"number", tick:{fill:"#7A90A8",fontSize:9}, axisLine:{stroke:"#1E3A5F"}}),
+      React.createElement(YAxis, {type:"category", dataKey:"country", width:110, tick:{fill:"#E8EDF2",fontSize:9}, axisLine:{stroke:"#1E3A5F"}}),
+      React.createElement(Tooltip, {content: React.createElement(ChartTooltip)}),
+      React.createElement(Bar, {dataKey:"count", name:"Requests", radius:[0,3,3,0]},
+        ...rows.map((d,i) => React.createElement(Cell, {key:i, fill:CHART_COLORS[i%CHART_COLORS.length]}))
+      )
+    )
+  );
+}
+
+// ── PROCESS TIMING TABLE ──────────────────────────────────────────────────────
+function ProcessTiming({pt}) {
+  if (!pt?.rows?.length)
+    return React.createElement("div", {
+      style:{color:"var(--muted)",fontSize:11,fontFamily:"var(--mono)"}
+    }, "No completion data available yet.");
+
+  const years   = pt.years || [];
+  const headers = ["Request Type", "Overall Avg", ...years.map(y => ""+y)];
+
+  return React.createElement("table", {className:"timing-table"},
+    React.createElement("thead", {},
+      React.createElement("tr", {}, ...headers.map(h => React.createElement("th", {key:h}, h)))
+    ),
+    React.createElement("tbody", {},
+      ...pt.rows.map((row, i) =>
+        React.createElement("tr", {key:i},
+          React.createElement("td", {style:{color:"var(--accent)",fontWeight:600}}, row.type),
+          React.createElement("td", {style:{color:"var(--warn)",fontWeight:700,fontFamily:"var(--mono)"}},
+            row.overall != null ? row.overall + " days" : "—"
+          ),
+          ...years.map(y => React.createElement("td", {
+            key:y, style:{fontFamily:"var(--mono)",color:"var(--text)"}
+          }, row[y] != null ? row[y] + " d" : "—"))
+        )
+      )
+    )
+  );
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+function Dashboard({data}) {
+  const currentYear = data.current_year || new Date().getFullYear();
+
+  return React.createElement("div", {className:"content"},
+
+    // Metric cards
+    React.createElement("div", {className:"metric-row"},
+      React.createElement("div", {className:"metric-card"},
+        React.createElement("div", {className:"metric-label"}, "Total Requests"),
+        React.createElement("div", {className:"metric-value"}, (data.total_requests||0).toLocaleString()),
+        React.createElement("div", {className:"metric-sub"}, "All time")
+      ),
+      React.createElement("div", {className:"metric-card"},
+        React.createElement("div", {className:"metric-label"}, "Completed"),
+        React.createElement("div", {className:"metric-value"}, (data.completed||0).toLocaleString()),
+        React.createElement("div", {className:"metric-sub"}, "COMPLETE + CLOSED")
+      ),
+      React.createElement("div", {className:"metric-card"},
+        React.createElement("div", {className:"metric-label"}, "Open"),
+        React.createElement("div", {className:"metric-value"}, (data.open||0).toLocaleString()),
+        React.createElement("div", {className:"metric-sub"}, "Active requests")
+      ),
+      React.createElement("div", {className:"metric-card"},
+        React.createElement("div", {className:"metric-label"}, "On-Time Completion Rate"),
+        React.createElement("div", {
+          className:"metric-value rate",
+          style:{color: data.completion_rate>=90 ? "var(--success)" :
+                        data.completion_rate>=70 ? "var(--warn)" : "var(--error)"}
+        }, data.completion_rate != null ? data.completion_rate + "%" : "—"),
+        React.createElement("div", {className:"metric-sub"}, "Completed within deadline")
+      )
+    ),
+
+    // Charts grid
+    React.createElement("div", {className:"dash-grid"},
+
+      // Today's Run Status
+      React.createElement("div", {className:"card col-4"},
+        React.createElement("div", {className:"card-title"}, "Today's Run Status"),
+        React.createElement(TodaysRun, {history: data.run_history || {}})
+      ),
+
+      // Weekly Trend
+      React.createElement("div", {className:"card col-4"},
+        React.createElement("div", {className:"card-title"}, "Weekly Trend"),
+        React.createElement(WeeklyTrend, {trend: data.weekly_trend})
+      ),
+
+      // Open by Stage
+      React.createElement("div", {className:"card col-4"},
+        React.createElement("div", {className:"card-title"}, "Open Requests by Stage"),
+        React.createElement(OpenByStage, {data: data.open_by_stage})
+      ),
+
+      // Expiring Soon
+      React.createElement("div", {className:"card col-12"},
+        React.createElement("div", {className:"card-title"}, "⚠ Expiring Soon / Overdue"),
+        React.createElement(ExpiringRequests, {expiring: data.expiring_soon || []})
+      ),
+
+      // By Month
+      React.createElement("div", {className:"card col-7"},
+        React.createElement("div", {className:"card-title"}, `Total Requests by Month — ${currentYear}`),
+        React.createElement(ResponsiveContainer, {width:"100%", height:180},
+          React.createElement(BarChart, {data: data.by_month || []},
+            React.createElement(CartesianGrid, {strokeDasharray:"3 3", stroke:"#1E3A5F"}),
+            React.createElement(XAxis, {dataKey:"month", tick:{fill:"#7A90A8",fontSize:10}, axisLine:{stroke:"#1E3A5F"}}),
+            React.createElement(YAxis, {tick:{fill:"#7A90A8",fontSize:10}, axisLine:{stroke:"#1E3A5F"}}),
+            React.createElement(Tooltip, {content: React.createElement(ChartTooltip)}),
+            React.createElement(Bar, {dataKey:"count", fill:"#00D4AA", radius:[3,3,0,0], name:"Requests"})
+          )
+        )
+      ),
+
+      // By Type
+      React.createElement("div", {className:"card col-5"},
+        React.createElement("div", {className:"card-title"}, "Requests by Type"),
+        React.createElement(ResponsiveContainer, {width:"100%", height:180},
+          React.createElement(BarChart, {data:(data.by_type||[]).slice(0,5), layout:"vertical"},
+            React.createElement(CartesianGrid, {strokeDasharray:"3 3", stroke:"#1E3A5F"}),
+            React.createElement(XAxis, {type:"number", tick:{fill:"#7A90A8",fontSize:10}, axisLine:{stroke:"#1E3A5F"}}),
+            React.createElement(YAxis, {type:"category", dataKey:"type", width:100, tick:{fill:"#7A90A8",fontSize:9}, axisLine:{stroke:"#1E3A5F"}}),
+            React.createElement(Tooltip, {content: React.createElement(ChartTooltip)}),
+            React.createElement(Bar, {dataKey:"count", radius:[0,3,3,0], name:"Count"},
+              ...(data.by_type||[]).slice(0,5).map((d,i) =>
+                React.createElement(Cell, {key:i, fill:CHART_COLORS[i%CHART_COLORS.length]})
+              )
+            )
+          )
+        )
+      ),
+
+      // Requests per Day
+      React.createElement("div", {className:"card col-12"},
+        React.createElement("div", {className:"card-title"}, "Requests per Day — Current Month"),
+        React.createElement(ResponsiveContainer, {width:"100%", height:160},
+          React.createElement(BarChart, {data: data.by_day || []},
+            React.createElement(CartesianGrid, {strokeDasharray:"3 3", stroke:"#1E3A5F"}),
+            React.createElement(XAxis, {dataKey:"date", tick:{fill:"#7A90A8",fontSize:9}, axisLine:{stroke:"#1E3A5F"},
+              tickFormatter: v => v.slice(5)}),
+            React.createElement(YAxis, {tick:{fill:"#7A90A8",fontSize:10}, axisLine:{stroke:"#1E3A5F"}}),
+            React.createElement(Tooltip, {content: React.createElement(ChartTooltip)}),
+            React.createElement(Bar, {dataKey:"count", fill:"#22C55E", radius:[3,3,0,0], name:"Requests"}),
+            data.by_day?.length > 0 && React.createElement(ReferenceLine, {
+              y: Math.round(data.by_day.reduce((s,d) => s+d.count, 0) / data.by_day.length),
+              stroke:"#EF4444", strokeDasharray:"6 3",
+              label:{value:"avg", fill:"#EF4444", fontSize:9}
+            })
+          )
+        )
+      ),
+
+      // Stages
+      React.createElement("div", {className:"card col-7"},
+        React.createElement("div", {className:"card-title"}, "Stages of CCPA Requests"),
+        React.createElement(ResponsiveContainer, {width:"100%", height:220},
+          React.createElement(BarChart, {data:(data.by_stage||[]).slice(-10), layout:"vertical"},
+            React.createElement(CartesianGrid, {strokeDasharray:"3 3", stroke:"#1E3A5F"}),
+            React.createElement(XAxis, {type:"number", tickFormatter:v=>v+"%", tick:{fill:"#7A90A8",fontSize:10}}),
+            React.createElement(YAxis, {type:"category", dataKey:"stage", width:145, tick:{fill:"#7A90A8",fontSize:8}}),
+            React.createElement(Tooltip, {content: React.createElement(ChartTooltip)}),
+            React.createElement(Bar, {dataKey:"pct", name:"%", radius:[0,3,3,0]},
+              ...(data.by_stage||[]).slice(-10).map((d,i) =>
+                React.createElement(Cell, {key:i, fill:CHART_COLORS[i%CHART_COLORS.length]})
+              )
+            )
+          )
+        )
+      ),
+
+      // By Year
+      React.createElement("div", {className:"card col-5"},
+        React.createElement("div", {className:"card-title"}, "Total Requests per Year"),
+        React.createElement(ResponsiveContainer, {width:"100%", height:220},
+          React.createElement(BarChart, {data: data.by_year || []},
+            React.createElement(CartesianGrid, {strokeDasharray:"3 3", stroke:"#1E3A5F"}),
+            React.createElement(XAxis, {dataKey:"year", tick:{fill:"#7A90A8",fontSize:10}}),
+            React.createElement(YAxis, {tick:{fill:"#7A90A8",fontSize:10}}),
+            React.createElement(Tooltip, {content: React.createElement(ChartTooltip)}),
+            React.createElement(Legend, {wrapperStyle:{fontSize:10,color:"#7A90A8"}}),
+            React.createElement(Bar, {dataKey:"delete",  name:"Delete",  fill:"#00D4AA", stackId:"a"}),
+            React.createElement(Bar, {dataKey:"dns",     name:"DNS",     fill:"#0099CC", stackId:"a"}),
+            React.createElement(Bar, {dataKey:"opt_out", name:"Opt Out", fill:"#7C5CBF", stackId:"a", radius:[3,3,0,0]})
+          )
+        )
+      ),
+
+      // Top 15 US States
+      React.createElement("div", {className:"card col-6"},
+        React.createElement("div", {className:"card-title"}, "Top 15 US States"),
+        React.createElement(TopStates, {data: data.by_state || []})
+      ),
+
+      // Top 15 Countries
+      React.createElement("div", {className:"card col-6"},
+        React.createElement("div", {className:"card-title"}, "Top 15 Countries"),
+        React.createElement(TopCountries, {data: data.by_country || []})
+      ),
+
+      // Avg Days to Complete
+      React.createElement("div", {className:"card col-12"},
+        React.createElement("div", {className:"card-title"}, "Average Days to Complete — by Type & Year"),
+        React.createElement(ProcessTiming, {pt: data.process_timing})
+      )
+
+    ) // end dash-grid
+  );
+}
+
+// ── ROOT APP ──────────────────────────────────────────────────────────────────
+function App() {
+  const [data,    setData]    = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState(null);
+  const [lastFetch, setLastFetch] = useState(null);
+
+  async function loadData() {
+    try {
+      const r = await fetch(DATA_URL + "?t=" + Date.now());
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const json = await r.json();
+      setData(json);
+      setError(null);
+      setLastFetch(new Date());
+    } catch(e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadData();
+    const interval = setInterval(loadData, REFRESH_INTERVAL);
+    return () => clearInterval(interval);
+  }, []);
+
+  const lastUpdated = data?.last_updated
+    ? new Date(data.last_updated).toLocaleString([], {month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})
+    : null;
+
+  return React.createElement("div", {},
+
+    // Header
+    React.createElement("div", {className:"header"},
+      React.createElement("div", {className:"header-logo"},
+        React.createElement("span", {className:"accent"}, "CCPA"),
+        " Dashboard",
+        React.createElement("div", {className:"header-badge"}, "Carter's Inc.")
+      ),
+      React.createElement("div", {className:"header-right"},
+        lastUpdated && React.createElement("div", {className:"header-updated"},
+          "Data updated: ", React.createElement("span", {}, lastUpdated)
+        ),
+        React.createElement("button", {className:"refresh-btn", onClick:loadData}, "↻ Refresh")
+      )
+    ),
+
+    // Body
+    loading
+      ? React.createElement("div", {className:"fullscreen-state"},
+          React.createElement("div", {className:"spinner"}),
+          "Loading dashboard data…"
+        )
+      : error
+        ? React.createElement("div", {className:"fullscreen-state"},
+            React.createElement("div", {style:{fontSize:32}}, "⚠"),
+            "No data available",
+            React.createElement("div", {style:{fontSize:11,color:"var(--muted)",marginTop:4}}, error),
+            React.createElement("button", {
+              className:"refresh-btn", style:{marginTop:16},
+              onClick: loadData
+            }, "Try again")
+          )
+        : data
+          ? React.createElement(Dashboard, {data})
+          : null
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+</script>
+</body>
+</html>

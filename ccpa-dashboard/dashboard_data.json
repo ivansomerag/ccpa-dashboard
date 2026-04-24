@@ -1,0 +1,27 @@
+{
+  "generated_at": "2026-01-01T00:00:00",
+  "total_requests": 0,
+  "completed": 0,
+  "open": 0,
+  "completion_rate": 0.0,
+  "todays_run": {
+    "validator": null,
+    "reporter": null,
+    "emailer": null
+  },
+  "weekly_trend": {
+    "this_week": 0,
+    "last_week": 0,
+    "pct_change": 0.0
+  },
+  "expiring_soon": [],
+  "by_month": [],
+  "by_type": [],
+  "requests_per_day": [],
+  "stages": [],
+  "open_by_stage": [],
+  "top_states": [],
+  "top_countries": [],
+  "avg_days_by_type": [],
+  "by_year_type": []
+}
