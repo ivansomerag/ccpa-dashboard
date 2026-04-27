@@ -492,12 +492,6 @@ function Dashboard({data}) {
     // Charts grid
     React.createElement("div", {className:"dash-grid"},
 
-      // Today's Run Status
-      React.createElement("div", {className:"card col-4"},
-        React.createElement("div", {className:"card-title"}, "Today's Run Status"),
-        React.createElement(TodaysRun, {history: data.run_history || {}})
-      ),
-
       // Weekly Trend
       React.createElement("div", {className:"card col-4"},
         React.createElement("div", {className:"card-title"}, "Weekly Trend"),
