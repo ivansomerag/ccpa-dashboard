@@ -393,13 +393,15 @@ function TopStates({data}) {
   Object.entries(US_FULL_NAMES).forEach(([abbr, name]) => {
     STATE_NAME_TO_ABBR[name.toUpperCase()] = abbr;
   });
-  const rows = (data || [])
-    .map(d => {
-      const raw = (d.state || "").trim().toUpperCase();
-      const abbr = US_ABBRS.has(raw) ? raw : (STATE_NAME_TO_ABBR[raw] || null);
-      return abbr ? {...d, state: abbr} : null;
-    })
-    .filter(Boolean)
+  // Normalize, deduplicate, sort
+  const stateMap = {};
+  (data || []).forEach(d => {
+    const raw = (d.state || "").trim().toUpperCase();
+    const abbr = US_ABBRS.has(raw) ? raw : (STATE_NAME_TO_ABBR[raw] || null);
+    if(abbr) stateMap[abbr] = (stateMap[abbr] || 0) + d.count;
+  });
+  const rows = Object.entries(stateMap)
+    .map(([abbr, count]) => ({state: abbr, count}))
     .sort((a,b) => b.count - a.count)
     .slice(0, 10)
     .map(d => ({...d, label: US_FULL_NAMES[d.state?.toUpperCase()] || d.state}));
@@ -408,7 +410,7 @@ function TopStates({data}) {
     React.createElement(BarChart, {data:rows, layout:"vertical", margin:{left:8,right:24,top:4,bottom:4}},
       React.createElement(CartesianGrid, {strokeDasharray:"3 3", stroke:"#1E3A5F", horizontal:false}),
       React.createElement(XAxis, {type:"number", tick:{fill:"#7A90A8",fontSize:9}, axisLine:{stroke:"#1E3A5F"}}),
-      React.createElement(YAxis, {type:"category", dataKey:"label", width:175, tick:{fill:"#E8EDF2",fontSize:9}, axisLine:{stroke:"#1E3A5F"}}),
+      React.createElement(YAxis, {type:"category", dataKey:"label", width:window.innerWidth < 500 ? 130 : 175, tick:{fill:"#E8EDF2",fontSize:9}, axisLine:{stroke:"#1E3A5F"}}),
       React.createElement(Tooltip, {content: React.createElement(ChartTooltip)}),
       React.createElement(Bar, {dataKey:"count", name:"Requests", radius:[0,3,3,0]},
         ...rows.map((d,i) => React.createElement(Cell, {key:i,
@@ -428,7 +430,7 @@ function TopCountries({data}) {
     React.createElement(BarChart, {data:rows, layout:"vertical", margin:{left:8,right:16,top:4,bottom:4}},
       React.createElement(CartesianGrid, {strokeDasharray:"3 3", stroke:"#1E3A5F", horizontal:false}),
       React.createElement(XAxis, {type:"number", tick:{fill:"#7A90A8",fontSize:9}, axisLine:{stroke:"#1E3A5F"}}),
-      React.createElement(YAxis, {type:"category", dataKey:"country", width:175, tick:{fill:"#E8EDF2",fontSize:9}, axisLine:{stroke:"#1E3A5F"}}),
+      React.createElement(YAxis, {type:"category", dataKey:"country", width:window.innerWidth < 500 ? 120 : 175, tick:{fill:"#E8EDF2",fontSize:9}, axisLine:{stroke:"#1E3A5F"}}),
       React.createElement(Tooltip, {content: React.createElement(ChartTooltip)}),
       React.createElement(Bar, {dataKey:"count", name:"Requests", radius:[0,3,3,0]},
         ...rows.map((d,i) => React.createElement(Cell, {key:i, fill:CHART_COLORS[i%CHART_COLORS.length]}))
