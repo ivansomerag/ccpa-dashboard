@@ -384,7 +384,24 @@ function OpenByStage({data}) {
 
 // ── TOP STATES ────────────────────────────────────────────────────────────────
 function TopStates({data}) {
-  const rows = (data || []).sort((a,b) => b.count-a.count).slice(0,10)
+  const US_ABBRS = new Set(["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA",
+    "HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO",
+    "MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC",
+    "SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC"]);
+  // Also map full state names to abbreviations in case data has full names
+  const STATE_NAME_TO_ABBR = {};
+  Object.entries(US_FULL_NAMES).forEach(([abbr, name]) => {
+    STATE_NAME_TO_ABBR[name.toUpperCase()] = abbr;
+  });
+  const rows = (data || [])
+    .map(d => {
+      const raw = (d.state || "").trim().toUpperCase();
+      const abbr = US_ABBRS.has(raw) ? raw : (STATE_NAME_TO_ABBR[raw] || null);
+      return abbr ? {...d, state: abbr} : null;
+    })
+    .filter(Boolean)
+    .sort((a,b) => b.count - a.count)
+    .slice(0, 10)
     .map(d => ({...d, label: US_FULL_NAMES[d.state?.toUpperCase()] || d.state}));
   if (!rows.length) return React.createElement("div", {className:"no-data"}, "No US state data");
   return React.createElement(ResponsiveContainer, {width:"100%", height:240},
