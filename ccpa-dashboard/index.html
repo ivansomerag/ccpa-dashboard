@@ -423,14 +423,27 @@ function TopStates({data}) {
 
 // ── TOP COUNTRIES ─────────────────────────────────────────────────────────────
 function TopCountries({data}) {
-  const rows = (data || []).sort((a,b) => b.count-a.count).slice(0,22)
-    .map(d => ({...d, country: d.country?.length > 18 ? d.country.slice(0,25)+"…" : d.country}));
+  const rows = (data || []).sort((a,b) => b.count-a.count).slice(0, 10)
+    .map(d => ({...d, country: d.country?.length > 18 ? d.country.slice(0,18)+"…" : d.country}));
+    
   if (!rows.length) return React.createElement("div", {className:"no-data"}, "No country data");
+  
   return React.createElement(ResponsiveContainer, {width:"100%", height:240},
-    React.createElement(BarChart, {data:rows, layout:"vertical", margin:{left:8,right:16,top:4,bottom:4}},
+    React.createElement(BarChart, {
+      data: rows, 
+      layout: "vertical", 
+      margin: {left:8, right:16, top:15, bottom:4} 
+    },
       React.createElement(CartesianGrid, {strokeDasharray:"3 3", stroke:"#1E3A5F", horizontal:false}),
       React.createElement(XAxis, {type:"number", tick:{fill:"#7A90A8",fontSize:9}, axisLine:{stroke:"#1E3A5F"}}),
-      React.createElement(YAxis, {type:"category", dataKey:"country", width:window.innerWidth < 500 ? 120 : 175, tick:{fill:"#E8EDF2",fontSize:9}, axisLine:{stroke:"#1E3A5F"}}),
+      React.createElement(YAxis, {
+        type: "category", 
+        dataKey: "country", 
+        width: window.innerWidth < 500 ? 120 : 175, 
+        tick: {fill:"#E8EDF2",fontSize:9}, 
+        axisLine: {stroke:"#1E3A5F"},
+        interval: 0 // Evita que salte etiquetas
+      }),
       React.createElement(Tooltip, {content: React.createElement(ChartTooltip)}),
       React.createElement(Bar, {dataKey:"count", name:"Requests", radius:[0,3,3,0]},
         ...rows.map((d,i) => React.createElement(Cell, {key:i, fill:CHART_COLORS[i%CHART_COLORS.length]}))
@@ -438,7 +451,6 @@ function TopCountries({data}) {
     )
   );
 }
-
 // ── PROCESS TIMING TABLE ──────────────────────────────────────────────────────
 function ProcessTiming({pt}) {
   if (!pt?.rows?.length)
